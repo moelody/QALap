@@ -230,7 +230,7 @@ public partial class SearchFm
         search.TopMost = true;
         bool init = search.InitStart(@"{ScriptsPath}", @"{ExpressionsPath}", @"{AepProjectsPath}");
         if (init && search.ShowDialog() == DialogResult.OK)
-        {}
+        { }
     }
     public class SFM : SearchFm
     {
