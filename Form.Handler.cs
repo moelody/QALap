@@ -92,7 +92,7 @@ public partial class SearchFm
             Popup.Items.AddRange(toolStripScriptsItems.ToArray());
             Popup.Items.Add(new CustomMenuItem("Expressions", Color.FromArgb(30, 30, 233)));
             Popup.Items.AddRange(toolStripExpressionsItems.ToArray());
-            Popup.Items.Add(new CustomMenuItem("Presets", Color.FromArgb(233, 30, 233)));
+            Popup.Items.Add(new CustomMenuItem("Projects", Color.FromArgb(233, 30, 233)));
             Popup.Items.AddRange(toolStripAepProjectsItems.ToArray());
 
             CurrentIndex = 1;
