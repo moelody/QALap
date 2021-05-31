@@ -21,7 +21,7 @@ public partial class SearchFm
         }
         else if (!Directory.Exists(aPath))
         {
-            MessageBox.Show(aPath + "工程路径不存在");
+            MessageBox.Show(aPath + "工程文件路径不存在");
             return false;
         }
         else

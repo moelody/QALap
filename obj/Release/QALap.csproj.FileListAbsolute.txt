@@ -6,3 +6,4 @@ C:\Users\moelody\source\repos\QALap\obj\Release\QALap.csproj.GenerateResource.ca
 C:\Users\moelody\source\repos\QALap\obj\Release\QALap.csproj.CoreCompileInputs.cache
 C:\Users\moelody\source\repos\QALap\obj\Release\QALap.dll
 C:\Users\moelody\source\repos\QALap\obj\Release\QALap.pdb
+C:\Users\moelody\source\repos\QALap\obj\Release\QALap.csprojAssemblyReference.cache
