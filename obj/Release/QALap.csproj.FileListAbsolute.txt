@@ -1,0 +1,8 @@
+C:\Users\moelody\source\repos\QALap\bin\Release\QALap.dll.config
+C:\Users\moelody\source\repos\QALap\bin\Release\QALap.dll
+C:\Users\moelody\source\repos\QALap\bin\Release\QALap.pdb
+C:\Users\moelody\source\repos\QALap\obj\Release\QALap.Properties.Resources.resources
+C:\Users\moelody\source\repos\QALap\obj\Release\QALap.csproj.GenerateResource.cache
+C:\Users\moelody\source\repos\QALap\obj\Release\QALap.csproj.CoreCompileInputs.cache
+C:\Users\moelody\source\repos\QALap\obj\Release\QALap.dll
+C:\Users\moelody\source\repos\QALap\obj\Release\QALap.pdb
