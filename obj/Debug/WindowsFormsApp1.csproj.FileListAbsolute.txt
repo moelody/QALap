@@ -1,0 +1,9 @@
+C:\Users\moelody\source\repos\QALap\bin\Debug\WindowsFormsApp1.dll.config
+C:\Users\moelody\source\repos\QALap\bin\Debug\WindowsFormsApp1.dll
+C:\Users\moelody\source\repos\QALap\bin\Debug\WindowsFormsApp1.pdb
+C:\Users\moelody\source\repos\QALap\obj\Debug\WindowsFormsApp1.csprojAssemblyReference.cache
+C:\Users\moelody\source\repos\QALap\obj\Debug\WindowsFormsApp1.Properties.Resources.resources
+C:\Users\moelody\source\repos\QALap\obj\Debug\WindowsFormsApp1.csproj.GenerateResource.cache
+C:\Users\moelody\source\repos\QALap\obj\Debug\WindowsFormsApp1.csproj.CoreCompileInputs.cache
+C:\Users\moelody\source\repos\QALap\obj\Debug\WindowsFormsApp1.dll
+C:\Users\moelody\source\repos\QALap\obj\Debug\WindowsFormsApp1.pdb

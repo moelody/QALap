@@ -1,0 +1,1039 @@
+using System.IO;
+using System.Text;
+using System.Windows.Forms;
+using System.Drawing;
+using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
+using System.Collections.Generic;
+
+public static class Everything
+{
+    #region API constants and references
+
+    const int EVERYTHING_OK	= 0;
+    const int EVERYTHING_ERROR_MEMORY = 1;
+    const int EVERYTHING_ERROR_IPC = 2;
+    const int EVERYTHING_ERROR_REGISTERCLASSEX = 3;
+    const int EVERYTHING_ERROR_CREATEWINDOW = 4;
+    const int EVERYTHING_ERROR_CREATETHREAD = 5;
+    const int EVERYTHING_ERROR_INVALIDINDEX = 6;
+    const int EVERYTHING_ERROR_INVALIDCALL = 7;
+
+    const int EVERYTHING_REQUEST_FILE_NAME = 0x00000001;
+    const int EVERYTHING_REQUEST_PATH = 0x00000002;
+    const int EVERYTHING_REQUEST_FULL_PATH_AND_FILE_NAME = 0x00000004;
+    const int EVERYTHING_REQUEST_EXTENSION = 0x00000008;
+    const int EVERYTHING_REQUEST_SIZE = 0x00000010;
+    const int EVERYTHING_REQUEST_DATE_CREATED = 0x00000020;
+    const int EVERYTHING_REQUEST_DATE_MODIFIED = 0x00000040;
+    const int EVERYTHING_REQUEST_DATE_ACCESSED = 0x00000080;
+    const int EVERYTHING_REQUEST_ATTRIBUTES = 0x00000100;
+    const int EVERYTHING_REQUEST_FILE_LIST_FILE_NAME = 0x00000200;
+    const int EVERYTHING_REQUEST_RUN_COUNT = 0x00000400;
+    const int EVERYTHING_REQUEST_DATE_RUN = 0x00000800;
+    const int EVERYTHING_REQUEST_DATE_RECENTLY_CHANGED = 0x00001000;
+    const int EVERYTHING_REQUEST_HIGHLIGHTED_FILE_NAME = 0x00002000;
+    const int EVERYTHING_REQUEST_HIGHLIGHTED_PATH = 0x00004000;
+    const int EVERYTHING_REQUEST_HIGHLIGHTED_FULL_PATH_AND_FILE_NAME = 0x00008000;
+
+    const int EVERYTHING_SORT_NAME_ASCENDING = 1;
+    const int EVERYTHING_SORT_NAME_DESCENDING = 2;
+    const int EVERYTHING_SORT_PATH_ASCENDING = 3;
+    const int EVERYTHING_SORT_PATH_DESCENDING = 4;
+    const int EVERYTHING_SORT_SIZE_ASCENDING = 5;
+    const int EVERYTHING_SORT_SIZE_DESCENDING = 6;
+    const int EVERYTHING_SORT_EXTENSION_ASCENDING = 7;
+    const int EVERYTHING_SORT_EXTENSION_DESCENDING = 8;
+    const int EVERYTHING_SORT_TYPE_NAME_ASCENDING = 9;
+    const int EVERYTHING_SORT_TYPE_NAME_DESCENDING = 10;
+    const int EVERYTHING_SORT_DATE_CREATED_ASCENDING = 11;
+    const int EVERYTHING_SORT_DATE_CREATED_DESCENDING = 12;
+    const int EVERYTHING_SORT_DATE_MODIFIED_ASCENDING = 13;
+    const int EVERYTHING_SORT_DATE_MODIFIED_DESCENDING = 14;
+    const int EVERYTHING_SORT_ATTRIBUTES_ASCENDING = 15;
+    const int EVERYTHING_SORT_ATTRIBUTES_DESCENDING = 16;
+    const int EVERYTHING_SORT_FILE_LIST_FILENAME_ASCENDING = 17;
+    const int EVERYTHING_SORT_FILE_LIST_FILENAME_DESCENDING = 18;
+    const int EVERYTHING_SORT_RUN_COUNT_ASCENDING = 19;
+    const int EVERYTHING_SORT_RUN_COUNT_DESCENDING = 20;
+    const int EVERYTHING_SORT_DATE_RECENTLY_CHANGED_ASCENDING = 21;
+    const int EVERYTHING_SORT_DATE_RECENTLY_CHANGED_DESCENDING = 22;
+    const int EVERYTHING_SORT_DATE_ACCESSED_ASCENDING = 23;
+    const int EVERYTHING_SORT_DATE_ACCESSED_DESCENDING = 24;
+    const int EVERYTHING_SORT_DATE_RUN_ASCENDING = 25;
+    const int EVERYTHING_SORT_DATE_RUN_DESCENDING = 26;
+
+    const int EVERYTHING_TARGET_MACHINE_X86 = 1;
+    const int EVERYTHING_TARGET_MACHINE_X64 = 2;
+    const int EVERYTHING_TARGET_MACHINE_ARM = 3;
+
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern UInt32 Everything_SetSearchW(string lpSearchString);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetMatchPath(bool bEnable);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetMatchCase(bool bEnable);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetMatchWholeWord(bool bEnable);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetRegex(bool bEnable);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetMax(UInt32 dwMax);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetOffset(UInt32 dwOffset);
+
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetMatchPath();
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetMatchCase();
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetMatchWholeWord();
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetRegex();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetMax();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetOffset();
+    [DllImport("Everything64.dll")]
+    public static extern IntPtr Everything_GetSearchW();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetLastError();
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_QueryW(bool bWait);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SortResultsByPath();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetNumFileResults();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetNumFolderResults();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetNumResults();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetTotFileResults();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetTotFolderResults();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetTotResults();
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_IsVolumeResult(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_IsFolderResult(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_IsFileResult(UInt32 nIndex);
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern void Everything_GetResultFullPathName(UInt32 nIndex, StringBuilder lpString, UInt32 nMaxCount);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_Reset();
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr Everything_GetResultFileName(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetSort(UInt32 dwSortType);
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetSort();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetResultListSort();
+    [DllImport("Everything64.dll")]
+    public static extern void Everything_SetRequestFlags(UInt32 dwRequestFlags);
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetRequestFlags();
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetResultListRequestFlags();
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr Everything_GetResultExtension(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetResultSize(UInt32 nIndex, out long lpFileSize);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetResultDateCreated(UInt32 nIndex, out long lpFileTime);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetResultDateModified(UInt32 nIndex, out long lpDateModified);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetResultDateAccessed(UInt32 nIndex, out long lpFileTime);
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetResultAttributes(UInt32 nIndex);
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr Everything_GetResultFileListFileName(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetResultRunCount(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetResultDateRun(UInt32 nIndex, out long lpFileTime);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_GetResultDateRecentlyChanged(UInt32 nIndex, out long lpFileTime);
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr Everything_GetResultHighlightedFileName(UInt32 nIndex);
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr Everything_GetResultHighlightedPath(UInt32 nIndex);
+    [DllImport("Everything64.dll", CharSet = CharSet.Unicode)]
+    public static extern IntPtr Everything_GetResultHighlightedFullPathAndFileName(UInt32 nIndex);
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_GetRunCountFromFileName(string lpFileName);
+    [DllImport("Everything64.dll")]
+    public static extern bool Everything_SetRunCountFromFileName(string lpFileName, UInt32 dwRunCount);
+    [DllImport("Everything64.dll")]
+    public static extern UInt32 Everything_IncRunCountFromFileName(string lpFileName);
+
+    #endregion
+    public static IEnumerable<Result> Search(string qry)
+    {
+        // set the search
+        Everything_SetSearchW(qry);
+        Everything_SetRequestFlags(EVERYTHING_REQUEST_FILE_NAME | EVERYTHING_REQUEST_PATH | EVERYTHING_REQUEST_DATE_MODIFIED | EVERYTHING_REQUEST_SIZE);
+
+        // execute the query
+        Everything_QueryW(true);
+        var resultCount = Everything_GetNumResults();
+
+        // sort by path
+        // Everything_SortResultsByPath();
+
+        // loop through the results, generating result objects
+        long date_modified;
+        long size;
+        for (uint i = 0; i < resultCount; i++)
+        {
+            var sb = new StringBuilder(999);
+            Everything_GetResultFullPathName(i, sb, 999);
+            Everything_GetResultDateModified(i, out date_modified);
+            Everything_GetResultSize(i, out size);
+
+            yield return new Result()
+            {
+                DateModified = DateTime.FromFileTime(date_modified),
+                Size = size,
+                Filename = Marshal.PtrToStringUni(Everything_GetResultFileName(i)),
+                Path = sb.ToString()
+            };
+        }
+    }
+
+    public struct Result
+    {
+        public long Size; //in bytes
+        public DateTime DateModified;
+        public string Filename;
+        public string Path;
+
+        public bool Folder { get { return Size < 0; } }
+
+        public override string ToString()
+        {
+            return "Name:" + Filename + "\tSize (B): " + (Folder ? "(Folder)" : Size.ToString()) + "\tModified: " + DateModified.Date + "\tPath: " + Path.Substring(0, 15) + "...";
+        }
+    }
+}
+public partial class SearchFm
+{
+    public static Quicker.Public.IStepContext contextStatic;
+    public static void Exec(Quicker.Public.IStepContext context)
+    {
+        contextStatic = context;
+        SearchFm search = new SFM();
+        search.TopMost = true;
+        bool init = search.InitStart(@"{ScriptsPath}", @"{ExpressionsPath}", @"{AepProjectsPath}");
+        if (init && search.ShowDialog() == DialogResult.OK)
+        {}
+    }
+    public class SFM : SearchFm
+    {
+        public override void SetVarValue(string text)
+        {
+            contextStatic.SetVarValue("OutText", text);
+        }
+    }
+}
+
+public partial class SearchFm : Form
+{
+    protected override void OnActivated(EventArgs e)
+    {
+        base.OnActivated(e);
+        int num = 2;
+        DwmSetWindowAttribute(base.Handle, 2, ref num, 4);
+
+        MARGINS margins = new MARGINS
+        {
+            cyBottomHeight = 0,
+            cxLeftWidth = 0,
+            cxRightWidth = 0,
+            cyTopHeight = 0
+        };
+        DwmExtendFrameIntoClientArea(base.Handle, ref margins);
+    }
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmSetWindowAttribute(IntPtr hwnd, int attr, ref int attrValue, int attrSize);
+    [DllImport("dwmapi.dll")]
+    public static extern int DwmExtendFrameIntoClientArea(IntPtr hdc, ref MARGINS marInset);
+    public struct MARGINS
+    {
+        public int cxLeftWidth;
+        public int cxRightWidth;
+        public int cyTopHeight;
+        public int cyBottomHeight;
+    }
+
+    public static SearchFm fm;
+    public SearchFm()
+    {
+        InitializeComponent();
+        fm = this;
+    }
+}
+public partial class SearchFm
+{
+    private Timer t;
+    private int CurrentIndex = 1;
+    private int MoreDelta = 0;
+    private bool IsClickEnter = false;
+    private string laststr = "laststr";
+    private static readonly Action<ToolStrip, int> ScrollInternal
+        = (Action<ToolStrip, int>)Delegate.CreateDelegate(typeof(Action<ToolStrip, int>),
+            typeof(ToolStrip).GetMethod("ScrollInternal",
+                System.Reflection.BindingFlags.NonPublic
+                | System.Reflection.BindingFlags.Instance));
+    private void handleDelta(object sender, MouseEventArgs e)
+    {
+        handleSelected(e.Delta < 0 ? true : false);
+    }
+    private void handleSelected(bool dw)
+    {
+        if (Popup.Items.Count == 0)
+            return;
+        var firstItem = Popup.Items[0];
+        var lastItem = Popup.Items[Popup.Items.Count - 1];
+        if (dw && lastItem.Bounds.Bottom <= Popup.Height || !dw && firstItem.Bounds.Top >= 0)
+            return;
+
+        int delta = 50;
+        if (firstItem.Bounds.Top == -25 || (lastItem.Bounds.Bottom - Height == 25))
+            delta = 25;
+        delta += MoreDelta;
+        MoreDelta = 0;
+
+        ScrollInternal(Popup, dw ? delta : -delta);
+    }
+    private bool SearchUtils(string name, string text)
+    {
+        return PinYinHelper.CapsConvert(name).IndexOf(text, StringComparison.CurrentCultureIgnoreCase) != -1
+            || PinYinHelper.Convert(name).IndexOf(text, StringComparison.CurrentCultureIgnoreCase) != -1
+            || name.IndexOf(text, StringComparison.CurrentCultureIgnoreCase) != -1;
+    }
+    private void Popup_Update(object sender, EventArgs e)
+    {
+
+        if (!string.IsNullOrEmpty(searchText.Text))
+        {
+            List<ToolStripMenuItem> toolStripScriptsItems = new List<ToolStripMenuItem>();
+            List<ToolStripMenuItem> toolStripExpressionsItems = new List<ToolStripMenuItem>();
+            List<ToolStripMenuItem> toolStripAepProjectsItems = new List<ToolStripMenuItem>();
+            List<ToolStripMenuItem> toolStripPresetsItems = new List<ToolStripMenuItem>();
+
+            //IEnumerable<Everything.Result> results = Everything.Search(String.Format("file:path:{1} \"{0}\"", ScriptsPath.ToString(), searchText.Text));
+            //foreach (Everything.Result result in results)
+            //{
+            //    toolStripScriptsItems.Add(new CustomDropItem(result.Filename, Color.FromArgb(233, 66, 66), Image.FromFile(@"C:\Users\moelody\Downloads\Compressed\shinobux3.png")));
+            //}
+            string text = searchText.Text;
+
+            foreach (FileInfo fileInfo in ScriptsPath.GetFiles("*.js*", SearchOption.AllDirectories))
+            {
+                if (SearchUtils(fileInfo.Name, text))
+                {
+                    toolStripScriptsItems.Add(new CustomDropItem(fileInfo.Name, Color.FromArgb(233, 66, 66), fileInfo.FullName));
+                }
+            }
+
+            foreach (FileInfo fileInfo in ExpressionsPath.GetFiles("*.exp", SearchOption.AllDirectories))
+            {
+                if (SearchUtils(fileInfo.Name, text))
+                {
+                    toolStripExpressionsItems.Add(new CustomDropItem(fileInfo.Name, Color.FromArgb(66, 66, 233), fileInfo.FullName));
+                }
+            }
+
+            foreach (FileInfo fileInfo in AepProjectPath.GetFiles("*.aep", SearchOption.AllDirectories))
+            {
+                if (SearchUtils(fileInfo.Name, text))
+                {
+                    toolStripAepProjectsItems.Add(new CustomDropItem(fileInfo.Name, Color.FromArgb(233, 66, 233), fileInfo.FullName));
+                }
+            }
+
+            int count = toolStripScriptsItems.Count + toolStripExpressionsItems.Count + toolStripAepProjectsItems.Count;
+            Popup.MinimumSize = new Size(540, 75 + 50 * (count > 5 ? 5 : count));
+            Popup.Items.Clear();
+            Popup.Items.Add(new CustomMenuItem("Scripts", Color.FromArgb(233, 30, 30)));
+            Popup.Items.AddRange(toolStripScriptsItems.ToArray());
+            Popup.Items.Add(new CustomMenuItem("Expressions", Color.FromArgb(30, 30, 233)));
+            Popup.Items.AddRange(toolStripExpressionsItems.ToArray());
+            Popup.Items.Add(new CustomMenuItem("Presets", Color.FromArgb(233, 30, 233)));
+            Popup.Items.AddRange(toolStripAepProjectsItems.ToArray());
+
+            CurrentIndex = 1;
+            while (Popup.Items[CurrentIndex].Size.Height == 25 && CurrentIndex < Popup.Items.Count - 1)
+            {
+                CurrentIndex = Math.Min(++CurrentIndex, Popup.Items.Count - 1);
+            }
+            Popup.Items[CurrentIndex].Select();
+            Popup.Show(new Point(1, 50));
+        } 
+        else
+        {
+            Popup.Items.Clear();
+            Popup.Close();
+        }
+        //t.Stop();
+    }
+    private void popup_MouseHover(object sender, EventArgs e)
+    {
+    }
+    private void popup_ItemClicked(Object sender, ToolStripItemClickedEventArgs e)
+    {
+        SetVarValue(e.ClickedItem.ToolTipText);
+        fm.Hide();
+    }
+    private void StartEventAfterXSeconds(int seconds = 100)
+    {
+        if (t != null)
+        {
+            t.Stop();
+        }
+        else
+        {
+            t = new Timer();
+            t.Tick += Popup_Update;
+        }
+
+        t.Interval = 1 * seconds;
+        t.Start();
+    }
+    private void searchText_DoubleClick(object sender, EventArgs e)
+    {
+        searchText.SelectAll();
+    }
+    private void searchText_TextChanged(object sender, EventArgs e)
+    {
+        Popup_Update(sender, e);
+    }
+    private void searchText_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.Control && e.KeyCode == Keys.A)
+        {
+            searchText.SelectAll();
+        }
+        // Up Arrow
+        if (e.KeyCode == Keys.Up)
+        {
+            e.Handled = true;
+            MoreDelta = 0;
+            CurrentIndex = Math.Max(--CurrentIndex, 1);
+            if (CurrentIndex != 0 && Popup.Items.Count != 3)
+            {
+                while (Popup.Items[CurrentIndex].Size.Height == 25 && CurrentIndex != 1)
+                {
+                    CurrentIndex = Math.Max(--CurrentIndex, 1);
+                    MoreDelta += 25;
+                }
+                while (Popup.Items[CurrentIndex].Size.Height == 25 && CurrentIndex != Popup.Items.Count - 1)
+                {
+                    CurrentIndex = Math.Min(++CurrentIndex, Popup.Items.Count - 1);
+                    MoreDelta -= 25;
+                }
+                Popup.Items[CurrentIndex].Select();
+            }
+            if (Popup.Items[CurrentIndex].Bounds.Top < 0)
+            {
+                handleSelected(false);
+            }
+        }
+        // Dw Arrow
+        if (e.KeyCode == Keys.Down)
+        {
+            e.Handled = true;
+            MoreDelta = 0;
+            CurrentIndex = Math.Min(++CurrentIndex, Popup.Items.Count - 1);
+            if (CurrentIndex != Popup.Items.Count && Popup.Items.Count != 3)
+            {
+                while (Popup.Items[CurrentIndex].Size.Height == 25 && CurrentIndex != Popup.Items.Count - 1)
+                {
+                    CurrentIndex = Math.Min(++CurrentIndex, Popup.Items.Count - 1);
+                    MoreDelta += 25;
+                }
+                while (Popup.Items[CurrentIndex].Size.Height == 25 && CurrentIndex != 1)
+                {
+                    CurrentIndex = Math.Max(--CurrentIndex, 1);
+                    MoreDelta -= 25;
+                }
+                Popup.Items[CurrentIndex].Select();
+            }
+            if (Popup.Items[CurrentIndex].Bounds.Bottom > Popup.Height)
+            {
+                handleSelected(true);
+            }
+        }
+    }
+    private void searchText_KeyUp(object sender, KeyEventArgs e)
+    {
+        if (IsClickEnter)
+        {
+            SetVarValue(Popup.Items[CurrentIndex].ToolTipText);
+            fm.Hide();
+        }
+        IsClickEnter = false;
+    }
+    private void searchText_KeyPress(object sender, KeyPressEventArgs e)
+    {
+        if (e.KeyChar == 13)
+        {
+            e.Handled = true;
+            IsClickEnter = true;
+        }
+        if (e.KeyChar == 27)
+        {
+            Result();
+            fm.Hide();
+        }
+    }
+    private void SearchFm_Deactivate(object sender, EventArgs e)
+    {
+        Result();
+    }
+    private void mainButton_Click(object sender, EventArgs e)
+    {
+        fm.Hide();
+    }
+    public void Result()
+    {
+        DialogResult = DialogResult.OK;
+    }
+}
+public partial class SearchFm
+{
+    private DirectoryInfo ScriptsPath;
+    private DirectoryInfo ExpressionsPath;
+    private DirectoryInfo AepProjectPath;
+    private DirectoryInfo PresetsPath;
+    public bool InitStart(string sPath = "", string ePath = "", string aPath = "")
+    {
+        if (!Directory.Exists(sPath))
+        {
+            MessageBox.Show(sPath + "脚本路径不存在");
+            return false;
+        }
+        else if (!Directory.Exists(ePath))
+        {
+            MessageBox.Show(ePath + "表达式路径不存在");
+            return false;
+        }
+        else if (!Directory.Exists(aPath))
+        {
+            MessageBox.Show(aPath + "工程路径不存在");
+            return false;
+        }
+        else
+        {
+            ScriptsPath = new DirectoryInfo(sPath);
+            ExpressionsPath = new DirectoryInfo(ePath);
+            AepProjectPath = new DirectoryInfo(aPath);
+            return true;
+        }
+    }
+}
+public partial class SearchFm
+{
+    public virtual void SetVarValue(string text) { }
+}
+public partial class SearchFm
+{
+    protected class CustomMenuItem : ToolStripMenuItem
+    {
+        private Color color;
+        public CustomMenuItem(string t, Color c)
+        {
+            color = c;
+            Text = t;
+            AutoSize = false;
+            Size = new Size(540, 25);
+            BackColor = Color.FromArgb(50, 50, 50);
+            ForeColor = Color.FromArgb(233, 233, 233);
+            Font = new Font("微软雅黑", 12, FontStyle.Regular);
+            Padding = Padding.Empty;
+            Margin = Padding.Empty;
+            TextAlign = ContentAlignment.MiddleLeft;
+            ImageAlign = ContentAlignment.MiddleLeft;
+            ImageScaling = ToolStripItemImageScaling.None;
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            //base.OnPaint(e);
+            e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
+            e.Graphics.FillEllipse(new SolidBrush(color), 14, 7, 10, 10);
+            e.Graphics.DrawString(Text, Font, new SolidBrush(ForeColor), 36, 1);
+        }
+    }
+    protected class CustomDropItem : ToolStripMenuItem
+    {
+        private Color HighlightColor;
+        private string ImagePath;
+        private float nPercent;
+        private float nPercentW;
+        private float nPercentH;
+        public CustomDropItem(string t, Color c, string p)
+        {
+            HighlightColor = c;
+            ToolTipText = p;
+            Text = t;
+            AutoSize = false;
+            Size = new Size(540, 50);
+            BackColor = Color.FromArgb(30, 30, 30);
+            Font = new Font("微软雅黑", 16, FontStyle.Regular);
+            Padding = Padding.Empty;
+            Margin = Padding.Empty;
+            TextAlign = ContentAlignment.MiddleLeft;
+            ImageAlign = ContentAlignment.MiddleLeft;
+            ImageScaling = ToolStripItemImageScaling.None;
+        }
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            //base.OnPaint(e);
+            if (Selected == true)
+            {
+                Rectangle rect = new Rectangle(0, 0, (int)e.Graphics.VisibleClipBounds.Width, (int)e.Graphics.VisibleClipBounds.Height);
+                //Rectangle rect = new Rectangle(2, 0, (int)e.Graphics.VisibleClipBounds.Width - 4, (int)e.Graphics.VisibleClipBounds.Height - 1);
+                using (SolidBrush brush = new SolidBrush(HighlightColor))
+                {
+                    e.Graphics.FillRectangle(brush, rect);
+                }
+            }
+            ImagePath = Regex.Replace(ToolTipText, @"(.+[^\/]+)(\.[^\/]+)$", "$1.png");
+            if (File.Exists(ImagePath))
+            {
+                Image img = Image.FromFile(ImagePath);
+                nPercent = (float)32 / (float)img.Height;
+                nPercentW = nPercent * img.Width;
+                nPercentH = nPercent * img.Height;
+                e.Graphics.DrawImage(Image.FromFile(ImagePath), 13, 8, nPercentW, nPercentH);
+                nPercentW -= 32;
+            }
+            else
+            {
+                e.Graphics.DrawImage(Icon.ExtractAssociatedIcon(ToolTipText).ToBitmap(), 13, 8);
+            }
+            e.Graphics.DrawString(Text, Font, new SolidBrush(ForeColor), 53 + nPercentW, 8);
+        }
+    }
+}
+public partial class SearchFm : Form
+{
+    [DllImport("user32.dll")]
+    public static extern bool ReleaseCapture();
+    [DllImport("user32.dll")]
+    public static extern bool SendMessage(IntPtr hwnd, int wMsg, int wParam, int IParam);
+    public const int WM_SYSCOMMAND = 0x0112;
+    public const int SC_MOVE = 0xF010;
+    public const int HTCAPTION = 0x0002;
+    protected void MoveForm()
+    {
+        ReleaseCapture();
+        SendMessage(this.Handle, WM_SYSCOMMAND, SC_MOVE + HTCAPTION, 0);
+    }
+    private void Form1_MouseDown(object sender, MouseEventArgs e)
+    {
+        MoveForm();
+    }
+    private void Form1_Load(object sender, EventArgs e)
+    {
+    }
+    private void Form1_Shown(object sender, EventArgs e)
+    {
+        this.Activate();
+    }
+}
+public partial class SearchFm
+{
+    public class PanelBox : Panel
+    {
+        private readonly Color BorderColor = Color.FromArgb(225, 225, 225);
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            ControlPaint.DrawBorder(e.Graphics,
+                ClientRectangle,
+                BorderColor,
+                ButtonBorderStyle.Solid
+                );
+            base.OnPaint(e);
+        }
+    }
+
+    public class PopupWindow : ToolStripDropDown
+    {
+        public PopupWindow()
+        {
+            //Basic setup...
+            this.AutoClose = false;
+            this.DropShadowEnabled = false;
+            this.AllowItemReorder = true;
+            this.DoubleBuffered = true;
+            this.ResizeRedraw = true;
+            this.TopLevel = false;
+            //ShowImageMargin = true;
+            //ShowCheckMargin = false;
+            this.RenderMode = ToolStripRenderMode.System;
+            this.Renderer = new ReRenderer(new CustomProfessionalColorTable());
+        }
+        protected class ReRenderer : ToolStripProfessionalRenderer
+        {
+
+            public ReRenderer(ProfessionalColorTable table) : base(table)
+            {
+                RoundedEdges = false;
+            }
+            protected override void OnRenderToolStripBorder(ToolStripRenderEventArgs e)
+            {
+                //base.OnRenderToolStripBorder(e);
+            }
+            protected override void OnRenderImageMargin(System.Windows.Forms.ToolStripRenderEventArgs e)
+            {
+                //base.OnRenderImageMargin(e);
+            }
+            protected override void OnRenderItemText(ToolStripItemTextRenderEventArgs e)
+            {
+                base.OnRenderItemText(e);
+            }
+        }
+        protected class CustomProfessionalColorTable : ProfessionalColorTable
+        {
+            public override Color MenuItemSelected
+            { get { return Color.FromArgb(100, 100, 100); } }
+
+            public override Color MenuBorder
+            { get { return Color.Black; } }
+
+            //fill màu item của menu khi mouse enter
+            public override Color MenuItemSelectedGradientBegin
+            { get { return Color.FromArgb(64, 64, 66); } }
+
+            public override Color MenuItemSelectedGradientEnd
+            { get { return Color.FromArgb(64, 64, 66); } }
+
+            // chọn màu viền menu item khi mouse enter
+            public override Color MenuItemBorder
+            { get { return Color.FromArgb(51, 51, 52); } }
+
+            // fill màu nút item của menu khi dc nhấn
+            public override Color MenuItemPressedGradientBegin
+            { get { return Color.FromArgb(27, 27, 28); } }
+
+            public override Color MenuItemPressedGradientEnd
+            { get { return Color.FromArgb(27, 27, 28); } }
+
+            // fill màu thanh menu strip
+            public override Color MenuStripGradientBegin
+            { get { return Color.FromArgb(51, 51, 52); } }
+
+            public override Color MenuStripGradientEnd
+            { get { return Color.FromArgb(51, 51, 52); } }
+        }
+    }
+
+    public class CustomToolStripItem : ToolStripMenuItem
+    {
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            string text = Text;
+            Text = "";
+            base.OnPaint(e);
+            if (this.Owner != null)
+            {
+                foreach (Match m in Regex.Matches(Text = text, @"(?<key>[lx])|(?<word>[^lx]+)", RegexOptions.IgnoreCase))
+                {
+                    if (m.Groups["key"].Success)
+                    {
+                        Text = m.Value;
+                        base.OnPaint(e);
+                    }
+                    else if (m.Groups["word"].Success)
+                    {
+                        Text = m.Value;
+                        base.OnPaint(e);
+                    }
+                }
+
+                //ToolStripItemTextRenderEventArgs rea =
+                //    new ToolStripItemTextRenderEventArgs(
+                //    e.Graphics,
+                //    this,
+                //    text,
+                //    ContentRectangle,
+                //    ForeColor,
+                //    Font,
+                //    TextAlign);
+                //this.Owner.Renderer.DrawItemText(rea);
+            }
+
+            //e.Graphics.FillRectangle(new SolidBrush(SystemColors.Control), e.ClipRectangle);
+
+            //var pattern = string.Format("({0}|\n)", Keyword);
+            //string[] strings = Regex.Split(Text, pattern, IgnoreCase ? RegexOptions.IgnoreCase : RegexOptions.None);
+            //int lineHeight = TextRenderer.MeasureText(e.Graphics, "A", Font).Height * 3 / 2;
+            //var pt = new Point();
+            //Size proposedSize = new Size(int.MaxValue, int.MaxValue);
+            //var flags = TextFormatFlags.NoPadding;
+            //foreach (var str in strings)
+            //{
+            //    if (str != "\n")
+            //    {
+            //        var sz = TextRenderer.MeasureText(e.Graphics, str, Font, proposedSize, flags);
+            //        var color = str.Equals(keyWord, IgnoreCase ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture) ?
+            //                KeywordColor : LinkColor;
+            //        TextRenderer.DrawText(e.Graphics, str, Font, pt, color, flags);
+            //        pt.X += sz.Width;
+            //    }
+            //    else
+            //    {
+            //        pt = new Point(0, pt.Y + lineHeight);
+            //    }
+            //}
+        }
+    }
+
+    public class FlatButton : Button
+    {
+        protected override void OnMouseEnter(EventArgs e)
+        {
+            this.ForeColor = Color.FromArgb(0, 0, 0);
+            this.Cursor = Cursors.Hand;
+            base.OnMouseEnter(e);
+        }
+        protected override void OnMouseLeave(EventArgs e)
+        {
+            this.ForeColor = Color.White;
+            this.Cursor = Cursors.Default;
+            base.OnMouseLeave(e);
+        }
+    }
+
+    public delegate void Mydoubleclick(object sender, MouseEventArgs e);
+    public class EditTextBox : TextBox
+    {
+        const int WM_LBUTTONDBLCLK = 0x0203;
+        public event Mydoubleclick EditMousedoubleclick;
+        protected override void WndProc(ref Message m)
+        {
+            if (m.Msg == WM_LBUTTONDBLCLK)
+            {
+                MouseEventArgs e = new MouseEventArgs(MouseButtons.Left, 2, MousePosition.X, MousePosition.Y, 0);
+                if (EditMousedoubleclick != null)
+                    EditMousedoubleclick(this, e);
+                return;
+            }
+            else
+            {
+                base.WndProc(ref m);
+            }
+        }
+    }
+}
+public partial class SearchFm
+{
+    private readonly System.ComponentModel.IContainer components = null;
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing && (components != null))
+        {
+            components.Dispose();
+        }
+        base.Dispose(disposing);
+    }
+    private void InitializeComponent()
+    {
+        this.panelBox = new PanelBox();
+        this.searchText = new EditTextBox();
+        this.mainButton = new FlatButton();
+        this.panelBox.SuspendLayout();
+        SuspendLayout();
+
+        this.searchText.BorderStyle = BorderStyle.None;
+        this.searchText.BackColor = Color.FromArgb(30, 30, 30);
+        this.searchText.ForeColor = Color.FromArgb(255, 255, 255);
+        this.searchText.Location = new Point(10, 9);
+        this.searchText.Margin = new Padding(10, 10, 10, 10);
+        this.searchText.Name = "searchText";
+        this.searchText.Size = new Size(430, 100);
+        this.searchText.TabIndex = 0;
+        this.searchText.TabStop = true;
+        this.searchText.Font = new Font("微软雅黑", 18, FontStyle.Regular);
+        this.searchText.EditMousedoubleclick += this.searchText_DoubleClick;
+        this.searchText.TextChanged += new EventHandler(this.searchText_TextChanged);
+        this.searchText.KeyDown += new KeyEventHandler(this.searchText_KeyDown);
+        this.searchText.KeyPress += new KeyPressEventHandler(this.searchText_KeyPress);
+        this.searchText.KeyUp += new KeyEventHandler(this.searchText_KeyUp);
+
+        this.mainButton.BackColor = Color.FromArgb(36, 36, 36); //Button color
+        this.mainButton.ForeColor = Color.FromArgb(255, 255, 255);//The color of the button text
+        this.mainButton.FlatAppearance.BorderColor = Color.FromArgb(36, 36, 36);//The color of the button's border
+        this.mainButton.FlatAppearance.MouseDownBackColor = Color.White;
+        this.mainButton.FlatAppearance.MouseOverBackColor = Color.White;
+        this.mainButton.FlatStyle = FlatStyle.Flat;
+        this.mainButton.Name = "searchButton";
+        this.mainButton.Tag = "Search";
+        this.mainButton.Text = "⚡";
+        this.mainButton.Location = new Point(500, 6);
+        this.mainButton.Font = new Font("微软雅黑", 16, FontStyle.Bold);
+        this.mainButton.Size = new Size(40, 40);
+        this.mainButton.TabIndex = 1;
+        this.mainButton.UseVisualStyleBackColor = false;
+        this.mainButton.Click += new EventHandler(this.mainButton_Click);
+
+        this.Popup = new PopupWindow()
+        {
+            AutoSize = true,
+            MinimumSize = new Size(540, 75),
+            MaximumSize = new Size(540, 25 + 300),
+            BackColor = Color.FromArgb(30, 30, 30),
+            ForeColor = Color.FromArgb(255, 255, 255),
+            Font = new Font("微软雅黑", 18, FontStyle.Regular),
+            Margin = new Padding(0, 0, 0, 1),
+            Padding = Padding.Empty
+        };
+        this.Popup.MouseWheel += new MouseEventHandler(handleDelta);
+        this.Popup.ItemClicked += new ToolStripItemClickedEventHandler(popup_ItemClicked);
+        this.Popup.MouseHover += new EventHandler(popup_MouseHover);
+
+        this.panelBox.Margin = Padding.Empty;
+        this.panelBox.Padding = Padding.Empty;
+        this.panelBox.AutoSize = true;
+        this.panelBox.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        this.panelBox.Controls.Add(searchText);
+        this.panelBox.Controls.Add(mainButton);
+        this.panelBox.Controls.Add(Popup);
+
+        this.AutoSize = true;
+        this.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+        this.AutoScaleDimensions = new SizeF(6F, 12F);
+        this.AutoScaleMode = AutoScaleMode.Font;
+        this.BackColor = Color.FromArgb(30, 30, 30);
+        this.ClientSize = new Size(540, 50);
+        this.Controls.Add(panelBox);
+
+        this.FormBorderStyle = FormBorderStyle.None;
+        this.Name = "SearchFm";
+        this.Padding = Padding.Empty;
+        this.ShowIcon = false;
+        this.ShowInTaskbar = false;
+        //this.StartPosition = FormStartPosition.CenterScreen;
+        this.StartPosition = FormStartPosition.Manual;
+        this.Location = Cursor.Position;
+        if (Cursor.Position.X + 543 > Screen.PrimaryScreen.Bounds.Width)
+        {
+            this.Location = new Point(Cursor.Position.X - 543, Cursor.Position.Y);
+        }
+        if (Cursor.Position.Y + 377 > Screen.PrimaryScreen.Bounds.Height)
+        {
+            this.Location = new Point(Cursor.Position.X, Cursor.Position.Y - 377);
+        }
+        this.Text = "QuickerSearch";
+        this.Deactivate += new EventHandler(SearchFm_Deactivate);
+        this.Load += new EventHandler(Form1_Load);
+        this.Shown += new EventHandler(Form1_Shown);
+        this.MouseDown += new MouseEventHandler(Form1_MouseDown);
+
+        this.panelBox.ResumeLayout(false);
+        this.panelBox.PerformLayout();
+        this.ResumeLayout(false);
+        this.PerformLayout();
+
+    }
+    private Panel panelBox;
+    private FlatButton mainButton;
+    private EditTextBox searchText;
+    private PopupWindow Popup;
+}
+
+public class PinYinHelper
+{
+    #region 数组信息
+
+    private static string[] pyName = new string[] { "A", "Ai", "An", "Ang", "Ao", "Ba", "Bai", "Ban", "Bang", "Bao", "Bei", "Ben", "Beng", "Bi", "Bian", "Biao", "Bie", "Bin", "Bing", "Bo", "Bu", "Ba", "Cai", "Can", "Cang", "Cao", "Ce", "Ceng", "Cha", "Chai", "Chan", "Chang", "Chao", "Che", "Chen", "Cheng", "Chi", "Chong", "Chou", "Chu", "Chuai", "Chuan", "Chuang", "Chui", "Chun", "Chuo", "Ci", "Cong", "Cou", "Cu", "Cuan", "Cui", "Cun", "Cuo", "Da", "Dai", "Dan", "Dang", "Dao", "De", "Deng", "Di", "Dian", "Diao", "Die", "Ding", "Diu", "Dong", "Dou", "Du", "Duan", "Dui", "Dun", "Duo", "E", "En", "Er", "Fa", "Fan", "Fang", "Fei", "Fen", "Feng", "Fo", "Fou", "Fu", "Ga", "Gai", "Gan", "Gang", "Gao", "Ge", "Gei", "Gen", "Geng", "Gong", "Gou", "Gu", "Gua", "Guai", "Guan", "Guang", "Gui", "Gun", "Guo", "Ha", "Hai", "Han", "Hang", "Hao", "He", "Hei", "Hen", "Heng", "Hong", "Hou", "Hu", "Hua", "Huai", "Huan", "Huang", "Hui", "Hun", "Huo", "Ji", "Jia", "Jian", "Jiang", "Jiao", "Jie", "Jin", "Jing", "Jiong", "Jiu", "Ju", "Juan", "Jue", "Jun", "Ka", "Kai", "Kan", "Kang", "Kao", "Ke", "Ken", "Keng", "Kong", "Kou", "Ku", "Kua", "Kuai", "Kuan", "Kuang", "Kui", "Kun", "Kuo", "La", "Lai", "Lan", "Lang", "Lao", "Le", "Lei", "Leng", "Li", "Lia", "Lian", "Liang", "Liao", "Lie", "Lin", "Ling", "Liu", "Long", "Lou", "Lu", "Lv", "Luan", "Lue", "Lun", "Luo", "Ma", "Mai", "Man", "Mang", "Mao", "Me", "Mei", "Men", "Meng", "Mi", "Mian", "Miao", "Mie", "Min", "Ming", "Miu", "Mo", "Mou", "Mu", "Na", "Nai", "Nan", "Nang", "Nao", "Ne", "Nei", "Nen", "Neng", "Ni", "Nian", "Niang", "Niao", "Nie", "Nin", "Ning", "Niu", "Nong", "Nu", "Nv", "Nuan", "Nue", "Nuo", "O", "Ou", "Pa", "Pai", "Pan", "Pang", "Pao", "Pei", "Pen", "Peng", "Pi", "Pian", "Piao", "Pie", "Pin", "Ping", "Po", "Pu", "Qi", "Qia", "Qian", "Qiang", "Qiao", "Qie", "Qin", "Qing", "Qiong", "Qiu", "Qu", "Quan", "Que", "Qun", "Ran", "Rang", "Rao", "Re", "Ren", "Reng", "Ri", "Rong", "Rou", "Ru", "Ruan", "Rui", "Run", "Ruo", "Sa", "Sai", "San", "Sang", "Sao", "Se", "Sen", "Seng", "Sha", "Shai", "Shan", "Shang", "Shao", "She", "Shen", "Sheng", "Shi", "Shou", "Shu", "Shua", "Shuai", "Shuan", "Shuang", "Shui", "Shun", "Shuo", "Si", "Song", "Sou", "Su", "Suan", "Sui", "Sun", "Suo", "Ta", "Tai", "Tan", "Tang", "Tao", "Te", "Teng", "Ti", "Tian", "Tiao", "Tie", "Ting", "Tong", "Tou", "Tu", "Tuan", "Tui", "Tun", "Tuo", "Wa", "Wai", "Wan", "Wang", "Wei", "Wen", "Weng", "Wo", "Wu", "Xi", "Xia", "Xian", "Xiang", "Xiao", "Xie", "Xin", "Xing", "Xiong", "Xiu", "Xu", "Xuan", "Xue", "Xun", "Ya", "Yan", "Yang", "Yao", "Ye", "Yi", "Yin", "Ying", "Yo", "Yong", "You", "Yu", "Yuan", "Yue", "Yun", "Za", "Zai", "Zan", "Zang", "Zao", "Ze", "Zei", "Zen", "Zeng", "Zha", "Zhai", "Zhan", "Zhang", "Zhao", "Zhe", "Zhen", "Zheng", "Zhi", "Zhong", "Zhou", "Zhu", "Zhua", "Zhuai", "Zhuan", "Zhuang", "Zhui", "Zhun", "Zhuo", "Zi", "Zong", "Zou", "Zu", "Zuan", "Zui", "Zun", "Zuo" };
+
+    private static int[] pyValue = new int[] { -20319, -20317, -20304, -20295, -20292, -20283, -20265, -20257, -20242, -20230, -20051, -20036, -20032, -20026, -20002, -19990, -19986, -19982, -19976, -19805, -19784, -19775, -19774, -19763, -19756, -19751, -19746, -19741, -19739, -19728, -19725, -19715, -19540, -19531, -19525, -19515, -19500, -19484, -19479, -19467, -19289, -19288, -19281, -19275, -19270, -19263, -19261, -19249, -19243, -19242, -19238, -19235, -19227, -19224, -19218, -19212, -19038, -19023, -19018, -19006, -19003, -18996, -18977, -18961, -18952, -18783, -18774, -18773, -18763, -18756, -18741, -18735, -18731, -18722, -18710, -18697, -18696, -18526, -18518, -18501, -18490, -18478, -18463, -18448, -18447, -18446, -18239, -18237, -18231, -18220, -18211, -18201, -18184, -18183, -18181, -18012, -17997, -17988, -17970, -17964, -17961, -17950, -17947, -17931, -17928, -17922, -17759, -17752, -17733, -17730, -17721, -17703, -17701, -17697, -17692, -17683, -17676, -17496, -17487, -17482, -17468, -17454, -17433, -17427, -17417, -17202, -17185, -16983, -16970, -16942, -16915, -16733, -16708, -16706, -16689, -16664, -16657, -16647, -16474, -16470, -16465, -16459, -16452, -16448, -16433, -16429, -16427, -16423, -16419, -16412, -16407, -16403, -16401, -16393, -16220, -16216, -16212, -16205, -16202, -16187, -16180, -16171, -16169, -16158, -16155, -15959, -15958, -15944, -15933, -15920, -15915, -15903, -15889, -15878, -15707, -15701, -15681, -15667, -15661, -15659, -15652, -15640, -15631, -15625, -15454, -15448, -15436, -15435, -15419, -15416, -15408, -15394, -15385, -15377, -15375, -15369, -15363, -15362, -15183, -15180, -15165, -15158, -15153, -15150, -15149, -15144, -15143, -15141, -15140, -15139, -15128, -15121, -15119, -15117, -15110, -15109, -14941, -14937, -14933, -14930, -14929, -14928, -14926, -14922, -14921, -14914, -14908, -14902, -14894, -14889, -14882, -14873, -14871, -14857, -14678, -14674, -14670, -14668, -14663, -14654, -14645, -14630, -14594, -14429, -14407, -14399, -14384, -14379, -14368, -14355, -14353, -14345, -14170, -14159, -14151, -14149, -14145, -14140, -14137, -14135, -14125, -14123, -14122, -14112, -14109, -14099, -14097, -14094, -14092, -14090, -14087, -14083, -13917, -13914, -13910, -13907, -13906, -13905, -13896, -13894, -13878, -13870, -13859, -13847, -13831, -13658, -13611, -13601, -13406, -13404, -13400, -13398, -13395, -13391, -13387, -13383, -13367, -13359, -13356, -13343, -13340, -13329, -13326, -13318, -13147, -13138, -13120, -13107, -13096, -13095, -13091, -13076, -13068, -13063, -13060, -12888, -12875, -12871, -12860, -12858, -12852, -12849, -12838, -12831, -12829, -12812, -12802, -12607, -12597, -12594, -12585, -12556, -12359, -12346, -12320, -12300, -12120, -12099, -12089, -12074, -12067, -12058, -12039, -11867, -11861, -11847, -11831, -11798, -11781, -11604, -11589, -11536, -11358, -11340, -11339, -11324, -11303, -11097, -11077, -11067, -11055, -11052, -11045, -11041, -11038, -11024, -11020, -11019, -11018, -11014, -10838, -10832, -10815, -10800, -10790, -10780, -10764, -10587, -10544, -10533, -10519, -10331, -10329, -10328, -10322, -10315, -10309, -10307, -10296, -10281, -10274, -10270, -10262, -10260, -10256, -10254 };
+
+    #endregion 数组信息
+
+    /// <summary>
+    ///  拼音
+    /// </summary>
+    /// <param name="content">内容</param>
+    /// <returns></returns>
+    public static string Convert(string content)
+    {
+        try
+        {
+            if (string.IsNullOrEmpty(content))
+                return null;
+
+            content = content.Trim().Replace(" ", "").Replace("?", "_").Replace("\\", "_").Replace("/", "_").Replace(":", "").Replace("*", "").Replace(">", "").Replace("<", "").Replace("?", "").Replace("|", "").Replace("\"", "'").Replace("(", "_").Replace(")", "_").Replace(";", "_");
+            content = content.Replace("，", ",").Replace("\"", "").Replace("；", "_").Replace("。", "_").Replace("[", "").Replace("]", "").Replace("【", "").Replace("】", "");
+            content = content.Replace("{", "").Replace("}", "").Replace("^", "").Replace("&", "_").Replace("=", "").Replace("~", "_").Replace("@", "_").Replace("￥", "");
+
+            Regex regex = new Regex(@"([a-zA-Z0-9\._]+)", RegexOptions.IgnoreCase);
+            if (regex.IsMatch(content))
+            {
+                if (content.Equals(regex.Match(content).Groups[1].Value, StringComparison.OrdinalIgnoreCase))
+                    return content;
+            }
+
+            regex = new Regex("^[\u4e00-\u9fa5]$");
+            byte[] array = new byte[2];
+            string pyString = "";
+            int chrAsc = 0;
+            int i1 = 0;
+            int i2 = 0;
+            char[] noWChar = content.ToCharArray();
+            for (int j = 0; j < noWChar.Length; j++)
+            {
+                if (regex.IsMatch(noWChar[j].ToString()))
+                {
+                    array = Encoding.Default.GetBytes(noWChar[j].ToString());
+                    i1 = (short)(array[0]);
+                    i2 = (short)(array[1]);
+                    chrAsc = i1 * 256 + i2 - 65536;
+                    if (chrAsc > 0 && chrAsc < 160)
+                    {
+                        pyString += noWChar[j];
+                    }
+                    else
+                    {
+                        if (chrAsc == -9254)
+                            pyString += "Zhen";
+                        else
+                        {
+                            for (int i = (pyValue.Length - 1); i >= 0; i--)
+                            {
+                                if (pyValue[i] <= chrAsc)
+                                {
+                                    pyString += pyName[i];
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    pyString += noWChar[j].ToString();
+                }
+            }
+
+            return pyString;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
+    public static string CapsConvert(string content)
+    {
+        return Regex.Replace(Convert(content), @"[^A-Z]+", "");
+    }
+}
+
